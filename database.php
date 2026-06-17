@@ -2,9 +2,9 @@
 // database.php
 
 $host = "localhost";
-$username = "root"; // Sesuaikan dengan username MySQL kamu
-$password = "";     // Sesuaikan dengan password MySQL kamu
-$dbname = "DB_LATIHAN_PBO_TRPL1A_NamaLengkap";
+$username = "root";
+$password = "";     
+$dbname = "db_latihan_pbo_ti1c_RaqilSyabana";
 
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
