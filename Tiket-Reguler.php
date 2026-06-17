@@ -3,48 +3,39 @@
 require_once 'Tiket.php';
 
 class TiketRegular extends Tiket {
-    // Properti tambahan spesifik
     private $tipeAudio;
     private $lokasiBaris;
 
-    // Constructor subclass
     public function __construct($id_tiket, $nama_film, $jadwal_tayang, $jumlah_kursi, $hargaDasarTiket, $tipeAudio, $lokasiBaris) {
-        // Memanggil constructor dari class induk (Tiket)
         parent::__construct($id_tiket, $nama_film, $jadwal_tayang, $jumlah_kursi, $hargaDasarTiket);
         $this->tipeAudio = $tipeAudio;
         $this->lokasiBaris = $lokasiBaris;
     }
 
-    // Mengimplementasikan metode abstrak hitungTotalHarga
+    // METHOD OVERRIDING LOGIKA REGULAR
     public function hitungTotalHarga() {
-        // Untuk reguler, total harga = harga dasar x jumlah kursi (tanpa biaya tambahan)
-        return $this->hargaDasarTiket * $this->jumlah_kursi;
+        return $this->jumlah_kursi * $this->hargaDasarTiket;
     }
 
-    // Mengimplementasikan metode abstrak tampilkanInfoFasilitas
     public function tampilkanInfoFasilitas() {
         return "Studio: Regular | Tipe Audio: " . $this->tipeAudio . " | Lokasi Baris: " . $this->lokasiBaris;
     }
 
-    // Method untuk menampilkan informasi lengkap tiket (opsional, bisa dipanggil di luar class)
-    public function tampilkanInfoTiket() {
-        $sql = "SELECT * FROM tiket WHERE id_tiket = :id_tiket";
-        // Eksekusi query dan kembalikan hasil
-        global $pdo; // Pastikan $pdo tersedia di sini (dari database.php)
+    public static function getWhereRegular(PDO $pdo, $kolom, $nilai) {
+        $sql = "SELECT * FROM tabel_tiket WHERE jenis_studio = 'Regular' AND $kolom LIKE :nilai";
         $stmt = $pdo->prepare($sql);
-        $stmt->execute(['id_tiket' => $this->id_tiket]);
-        $tiketData = $stmt->fetch(PDO::FETCH_ASSOC);
-        if ($tiketData) {
-            return "ID Tiket: " . $tiketData['id_tiket'] . "\n" .
-                   "Nama Film: " . $tiketData['nama_film'] . "\n" .
-                   "Jadwal Tayang: " . $tiketData['jadwal_tayang'] . "\n" .
-                   "Jumlah Kursi: " . $tiketData['jumlah_kursi'] . "\n" .
-                   "Harga Dasar Tiket: Rp " . number_format($tiketData['hargaDasarTiket'], 0, ',', '.') . "\n" .
-                   $this->tampilkanInfoFasilitas() . "\n" .
-                   "Total Harga: Rp " . number_format($this->hitungTotalHarga(), 0, ',', '.');
-        } else {
-            return "Tiket dengan ID " . $this->id_tiket . " tidak ditemukan.";
+        $stmt->execute(['nilai' => '%' . $nilai . '%']);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $daftar = [];
+        foreach ($rows as $row) {
+            $daftar[] = new self(
+                $row['id_tiket'], $row['nama_film'], $row['jadwal_tayang'], 
+                $row['jumlah_kursi'], $row['harga_dasar_tiket'],
+                $row['tipe_audio'], $row['lokasi_baris']
+            );
         }
+        return $daftar;
     }
 }
 ?>
